@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>o que ficou</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Special+Elite&display=swap" rel="stylesheet">
+<style>
+
+:root{
+  --bg:#0a0908;
+  --bg2:#151110;
+  --bg3:#1e1815;
+  --ink:#e8dcc8;
+  --ink-dim:#8c7d68;
+  --accent:#b5895a;
+  --accent-red:#7a3129;
+  --line: rgba(232,220,200,0.14);
+}
+
+*{box-sizing:border-box;}
+
+html,body{
+  margin:0;
+  padding:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'Special Elite', monospace;
+  overflow-x:hidden;
+}
+
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:9999;
+  opacity:.05;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.filtros{position:absolute;width:0;height:0;overflow:hidden;}
+
+h1,h2,h3,.fonte-mao{
+  font-family:'Caveat', cursive;
+  font-weight:700;
+  letter-spacing:.5px;
+}
+
+.tremido1{filter:url(#tremido1);}
+.tremido2{filter:url(#tremido2);}
+
+button{font-family:inherit;}
+
+.botao-tremido{
+  font-family:'Caveat', cursive;
+  font-size:clamp(1.15rem,2.4vw,1.5rem);
+  background:transparent;
+  color:var(--ink);
+  border:2px solid var(--ink-dim);
+  padding:.45em 1.5em;
+  cursor:pointer;
+  filter:url(#tremido2);
+  transition:transform .2s ease, color .2s ease, border-color .2s ease;
+  -webkit-tap-highlight-color:transparent;
+}
+.botao-tremido:hover{transform:scale(1.06) rotate(-1deg);color:var(--accent);border-color:var(--accent);}
+.botao-tremido:active{transform:scale(.97);}
+
+#tela-carregando{
+  position:fixed;
+  inset:0;
+  background:#000;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  z-index:500;
+  text-align:center;
+  padding:20px;
+  transition:opacity 1.2s ease;
+}
+#tela-carregando h1{
+  font-size:clamp(1.8rem,6vw,2.6rem);
+  color:var(--ink);
+  filter:url(#tremido1);
+  margin:0 0 14px 0;
+}
+#tela-carregando p{
+  font-size:clamp(.85rem,2.4vw,1rem);
+  color:var(--ink-dim);
+  max-width:420px;
+  margin:0;
+  line-height:1.6;
+}
+.pontinhos::after{
+  content:'';
+  animation:pontos 1.6s steps(4) infinite;
+}
+@keyframes pontos{
+  0%{content:'';}
+  25%{content:'.';}
+  50%{content:'..';}
+  75%{content:'...';}
+}
+#tela-carregando.escondida{opacity:0;pointer-events:none;}
+
+#corredor{
+  position:relative;
+  min-height:100vh;
+  padding:14vh 6vw 10vh 6vw;
+  max-width:720px;
+  margin:0 auto;
+}
+
+#trilha{
+  position:absolute;
+  left:6px;
+  top:0;
+  width:60px;
+  z-index:0;
+  pointer-events:none;
+}
+.pegada{
+  position:absolute;
+  width:16px;
+  height:24px;
+  opacity:0;
+  transform:translateY(10px);
+  transition:opacity 1.4s ease, transform 1.4s ease;
+  background:radial-gradient(ellipse at center, var(--ink-dim) 0%, transparent 70%);
+  border-radius:50% 50% 45% 45%;
+}
+.pegada.visivel{opacity:.28;transform:translateY(0);}
+
+.intro-corredor{
+  text-align:center;
+  margin-bottom:10vh;
+  position:relative;
+  z-index:1;
+}
+.intro-corredor h2{
+  font-size:clamp(1.6rem,4.5vw,2.3rem);
+  color:var(--ink);
+  margin-bottom:8px;
+}
+.intro-corredor p{
+  color:var(--ink-dim);
+  font-size:.85rem;
+  line-height:1.7;
+}
+
+.porta{
+  position:relative;
+  z-index:1;
+  margin:0 0 12vh 0;
+  text-align:center;
+}
+.porta-visual{
+  width:min(190px,52vw);
+  aspect-ratio:2/3;
+  margin:0 auto;
+  background:linear-gradient(180deg,var(--bg3),var(--bg2));
+  border:2px solid var(--line);
+  position:relative;
+  cursor:pointer;
+  box-shadow:0 14px 30px rgba(0,0,0,.55);
+  -webkit-tap-highlight-color:transparent;
+}
+.porta-visual::after{
+  content:'';
+  position:absolute;
+  right:16px;
+  top:50%;
+  width:9px;
+  height:9px;
+  border-radius:50%;
+  background:var(--accent);
+  box-shadow:0 0 8px rgba(181,137,90,.6);
+}
+.porta-visual[data-estado="aberta"]{
+  background:radial-gradient(ellipse at center, #030201 0%, #0d0a08 80%);
+  box-shadow:inset 0 0 50px rgba(0,0,0,.95), 0 14px 30px rgba(0,0,0,.55);
+}
+.porta-visual[data-estado="aberta"]::after{opacity:.35;}
+.porta-visual:hover{transform:scale(1.02);}
+
+.porta-titulo{
+  font-size:clamp(1.3rem,3.6vw,1.7rem);
+  margin:18px 0 4px 0;
+  color:var(--ink);
+}
+.porta-subtitulo{
+  color:var(--ink-dim);
+  font-size:.8rem;
+  margin:0 0 14px 0;
+}
+
+.porta-conteudo{
+  max-width:420px;
+  margin:0 auto;
+  padding-top:6px;
+  animation:revelarConteudo .5s steps(6) both;
+}
+@keyframes revelarConteudo{
+  from{opacity:0;transform:translateY(-6px);}
+  to{opacity:1;transform:translateY(0);}
+}
+.porta-midias{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  justify-content:center;
+  margin-bottom:16px;
+}
+.porta-midia{
+  width:140px;
+  height:100px;
+  object-fit:cover;
+  border:1px solid var(--line);
+  filter:grayscale(.3) contrast(1.05);
+  background:var(--bg3);
+  cursor:pointer;
+  transition:transform .25s ease, filter .25s ease;
+}
+.porta-midia:hover{
+  transform:scale(1.04);
+  filter:grayscale(0) contrast(1.05);
+}
+.porta-acoes{
+  display:flex;
+  gap:14px;
+  justify-content:center;
+  flex-wrap:wrap;
+}
+
+#alcapao{
+  position:relative;
+  z-index:1;
+  width:150px;
+  height:88px;
+  margin:2vh auto 14vh auto;
+  opacity:.4;
+  cursor:pointer;
+  transition:opacity .4s ease;
+}
+#alcapao:hover{opacity:.8;}
+#alcapao .alcapao-porta{
+  position:absolute;
+  inset:0;
+  background:linear-gradient(180deg,var(--bg3),var(--bg2));
+  border:2px solid var(--line);
+  box-shadow:0 10px 22px rgba(0,0,0,.5), inset 0 0 18px rgba(0,0,0,.5);
+  overflow:hidden;
+}
+.alcapao-tabua{
+  position:absolute;
+  left:2px;
+  right:2px;
+  height:1px;
+  background:var(--line);
+}
+.alcapao-tabua:nth-child(1){top:23%;}
+.alcapao-tabua:nth-child(2){top:48%;}
+.alcapao-tabua:nth-child(3){top:73%;}
+.alcapao-fenda{
+  position:absolute;
+  top:1px;
+  bottom:1px;
+  left:50%;
+  width:1px;
+  background:var(--line);
+  opacity:.7;
+}
+.alcapao-dobradica{
+  position:absolute;
+  top:-3px;
+  width:16px;
+  height:6px;
+  background:var(--ink-dim);
+  opacity:.65;
+}
+.alcapao-dobradica.esquerda{left:12px;}
+.alcapao-dobradica.direita{right:12px;}
+.alcapao-argola{
+  position:absolute;
+  left:50%;
+  bottom:16px;
+  transform:translateX(-50%);
+  width:20px;
+  height:20px;
+  border:2px solid var(--ink-dim);
+  border-radius:50%;
+  opacity:.75;
+}
+.teia-svg{
+  position:absolute;
+  width:46px;
+  height:46px;
+  pointer-events:none;
+  opacity:.6;
+}
+.teia-svg-1{top:-16px;left:-16px;}
+.teia-svg-2{top:-16px;right:-16px;transform:scaleX(-1);}
+.teia-svg-3{bottom:-14px;left:-10px;transform:scale(.7);}
+.linha-teia{
+  fill:none;
+  stroke:var(--ink-dim);
+  stroke-width:1;
+}
+.linha-teia.fina{
+  stroke-width:.6;
+  opacity:.7;
+}
+
+#secao-final{
+  position:relative;
+  z-index:1;
+  text-align:center;
+  margin-top:8vh;
+  padding-top:8vh;
+  border-top:1px solid var(--line);
+}
+#final-texto{
+  font-size:clamp(1.1rem,3vw,1.35rem);
+  color:var(--ink);
+  min-height:3.6em;
+  max-width:480px;
+  margin:0 auto 24px auto;
+  line-height:1.6;
+}
+#final-passo2{display:none;margin-top:26px;}
+#final-encerramento{
+  font-size:.95rem;
+  color:var(--ink-dim);
+  max-width:440px;
+  margin:0 auto 26px auto;
+  line-height:1.8;
+  min-height:5em;
+}
+#final-link{display:none;}
+
+.overlay-cheia{
+  position:fixed;
+  inset:0;
+  background:#000;
+  z-index:200;
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:6vh 6vw;
+  text-align:center;
+  overflow-y:auto;
+}
+.overlay-cheia.visivel{display:flex;}
+
+#modal-confirmar .caixa-modal{
+  background:var(--bg2);
+  border:1px solid var(--line);
+  padding:34px 30px;
+  max-width:340px;
+  filter:url(#tremido1);
+}
+#modal-confirmar p{
+  font-family:'Caveat', cursive;
+  font-size:1.5rem;
+  margin:0 0 22px 0;
+}
+#modal-confirmar .botoes{
+  display:flex;
+  gap:16px;
+  justify-content:center;
+}
+
+#cena-sotao{
+  z-index:150;
+  justify-content:flex-start;
+  padding-top:10vh;
+}
+#sotao-texto{
+  font-family:'Caveat', cursive;
+  font-size:clamp(1.6rem,4.5vw,2.2rem);
+  min-height:2em;
+  margin-bottom:6vh;
+}
+#caixa{
+  width:150px;
+  height:110px;
+  position:relative;
+  margin:0 auto 4vh auto;
+  cursor:pointer;
+  perspective:500px;
+}
+#caixa .caixa-corpo{
+  position:absolute;
+  bottom:0;
+  width:100%;
+  height:76px;
+  background:linear-gradient(180deg,var(--bg3),var(--bg2));
+  border:2px solid var(--line);
+}
+#caixa .caixa-tampa{
+  position:absolute;
+  top:0;
+  width:100%;
+  height:44px;
+  background:var(--bg3);
+  border:2px solid var(--line);
+  transform-origin:top center;
+  transition:transform .7s ease;
+  transform-style:preserve-3d;
+}
+#caixa.aberta .caixa-tampa{transform:rotateX(-115deg);}
+#caixa.aberta{cursor:default;}
+
+#sotao-chao{
+  position:relative;
+  width:min(560px,88vw);
+  height:min(46vh,340px);
+  margin:0 auto;
+  border-top:1px solid var(--line);
+}
+
+.item-fisica{
+  position:absolute;
+  top:0;
+  left:0;
+  cursor:grab;
+  touch-action:none;
+  user-select:none;
+}
+.item-fisica:active{cursor:grabbing;}
+
+.envelope-corpo{
+  width:92px;
+  height:62px;
+  background:var(--bg3);
+  border:1px solid var(--line);
+  position:relative;
+  box-shadow:0 8px 16px rgba(0,0,0,.5);
+  filter:url(#tremido2);
+}
+.envelope-corpo::before{
+  content:'';
+  position:absolute;
+  top:0;
+  left:0;
+  width:0;
+  height:0;
+  border-left:46px solid transparent;
+  border-right:46px solid transparent;
+  border-top:30px solid var(--bg2);
+}
+
+.moldura-item{
+  width:78px;
+  height:96px;
+  border:9px solid var(--accent);
+  background:var(--bg2);
+  box-shadow:0 10px 20px rgba(0,0,0,.55), inset 0 0 0 2px rgba(0,0,0,.4);
+  filter:url(#tremido1);
+  overflow:hidden;
+}
+.moldura-item img{width:100%;height:100%;object-fit:cover;display:block;}
+
+#voltar-corredor{
+  position:fixed;
+  top:18px;
+  right:18px;
+  z-index:220;
+  font-size:.85rem;
+  padding:.4em 1em;
+}
+
+#visualizador-carta{z-index:250;}
+#envelope-abrir{cursor:pointer;}
+#envelope-abrir .envelope-corpo{width:140px;height:96px;}
+#envelope-abrir .envelope-corpo::before{border-left:70px solid transparent;border-right:70px solid transparent;border-top:46px solid var(--bg2);}
+#carta-titulo{
+  font-family:'Caveat', cursive;
+  font-size:clamp(1.6rem,5vw,2.4rem);
+  margin-top:22px;
+  min-height:1.4em;
+}
+#carta-papel{
+  display:none;
+  max-width:480px;
+  text-align:left;
+  background:var(--bg2);
+  border:1px solid var(--line);
+  padding:30px 26px;
+  margin-top:10px;
+}
+#carta-papel.mostrando{display:block;}
+#carta-corpo{
+  font-size:.92rem;
+  line-height:1.9;
+  white-space:pre-wrap;
+  min-height:6em;
+}
+
+#visualizador-moldura{z-index:250;}
+#moldura-grande{
+  max-width:min(70vw,420px);
+  max-height:60vh;
+  border:14px solid var(--accent);
+  box-shadow:0 20px 50px rgba(0,0,0,.6);
+}
+#moldura-legenda{
+  font-family:'Caveat', cursive;
+  font-size:1.3rem;
+  margin-top:18px;
+}
+
+.voltar-pequeno{margin-top:30px;font-size:.9rem;}
+
+#foto-grande{
+  max-width:min(88vw,640px);
+  max-height:72vh;
+  border:1px solid var(--line);
+  box-shadow:0 20px 50px rgba(0,0,0,.6);
+}
+
+@media (max-width:480px){
+  #corredor{padding-top:12vh;}
+  #trilha{display:none;}
+  .porta-midia{width:120px;height:86px;}
+}
+
+</style>
+</head>
+<body>
+
+<svg class="filtros">
+  <filter id="tremido1">
+    <feTurbulence type="fractalNoise" baseFrequency="0.012" numOctaves="2" seed="4" result="ruido1">
+      <animate attributeName="seed" values="2;9;4;13;6;1;10;2" dur="1.4s" calcMode="discrete" repeatCount="indefinite"/>
+    </feTurbulence>
+    <feDisplacementMap in="SourceGraphic" in2="ruido1" scale="3.2"/>
+  </filter>
+  <filter id="tremido2">
+    <feTurbulence type="fractalNoise" baseFrequency="0.045" numOctaves="2" seed="7" result="ruido2">
+      <animate attributeName="seed" values="1;11;3;16;5;19;8;1" dur="1.1s" calcMode="discrete" repeatCount="indefinite"/>
+    </feTurbulence>
+    <feDisplacementMap in="SourceGraphic" in2="ruido2" scale="5.5"/>
+  </filter>
+</svg>
+
+<div id="tela-carregando">
+  <h1>Espere um pouco<span class="pontinhos"></span></h1>
+  <p>Não me leve a mal, lembro que sua internet demorava carregar, então aguenta um pouquinho pra não ficar bugado.</p>
+</div>
+
+<div id="corredor">
+
+  <div id="trilha"></div>
+
+  <div class="intro-corredor">
+    <h2>Isso aqui é tudo que restou de nós dois em portas.</h2>
+    <p>Você pode abrir na ordem que quiser. Ou não abrir nenhuma.</p>
+  </div>
+
+  <article class="porta" data-porta="1">
+    <div class="porta-visual" data-estado="fechada"></div>
+    <h3 class="porta-titulo">A gente se viu pela primeira vez.</h3>
+    <p class="porta-subtitulo">Estávamos nervosos, mas aprendemos bastante um do outro.</p>
+     <p class="porta-subtitulo">Foi legal ajudar com a torta de bolacha.</p>
+    <div class="porta-conteudo" hidden>
+      <div class="porta-midias">
+        <img class="porta-midia" src="foto/niver.jpg" alt="">
+        <img class="porta-midia" src="foto/niver2.jpg" alt="">
+      </div>
+      <div class="porta-acoes">
+        <button class="botao-tremido botao-baixar" type="button">Baixar fotos</button>
+        <button class="botao-tremido botao-voltar" type="button">Voltar</button>
+      </div>
+    </div>
+  </article>
+
+  <article class="porta" data-porta="2">
+    <div class="porta-visual" data-estado="fechada"></div>
+    <h3 class="porta-titulo">Dois bobões jogando Habbo</h3>
+    <p class="porta-subtitulo">Ganhamos até uma "Web-bença" do papa.</p>
+    <div class="porta-conteudo" hidden>
+      <div class="porta-midias">
+        <img class="porta-midia" src="foto/hab.png" alt="">
+        <img class="porta-midia" src="foto/hab2.png" alt="">
+        <img class="porta-midia" src="foto/hab3.png" alt="">
+        <img class="porta-midia" src="foto/hab4.png" alt="">
+      </div>
+      <div class="porta-acoes">
+        <button class="botao-tremido botao-baixar" type="button">Baixar fotos</button>
+        <button class="botao-tremido botao-voltar" type="button">Voltar</button>
+      </div>
+    </div>
+  </article>
+
+  <article class="porta" data-porta="3">
+    <div class="porta-visual" data-estado="fechada"></div>
+    <h3 class="porta-titulo">Museu</h3>
+    <p class="porta-subtitulo">Não sabíamos tirar fotos sérias.</p>
+    <div class="porta-conteudo" hidden>
+      <div class="porta-midias">
+        <img class="porta-midia" src="foto/mus.jpg" alt="">
+        <img class="porta-midia" src="foto/mus2.jpg" alt="">
+      </div>
+      <div class="porta-acoes">
+        <button class="botao-tremido botao-baixar" type="button">Baixar fotos</button>
+        <button class="botao-tremido botao-voltar" type="button">Voltar</button>
+      </div>
+    </div>
+  </article>
+<p class="porta-subtitulo">Lugar velho.</p>
+  <div id="alcapao" title="">
+    <svg class="teia-svg teia-svg-1" viewBox="0 0 44 44">
+      <path class="linha-teia" d="M0 0 L44 0 M0 0 L0 44 M0 0 L22 22 M0 0 L34 10 M0 0 L10 34"/>
+      <path class="linha-teia fina" d="M4 4 Q14 2 20 8 M2 12 Q8 18 4 26 M10 3 Q16 10 10 18"/>
+    </svg>
+    <svg class="teia-svg teia-svg-2" viewBox="0 0 44 44">
+      <path class="linha-teia" d="M0 0 L44 0 M0 0 L0 44 M0 0 L22 22 M0 0 L34 10 M0 0 L10 34"/>
+      <path class="linha-teia fina" d="M4 4 Q14 2 20 8 M2 12 Q8 18 4 26 M10 3 Q16 10 10 18"/>
+    </svg>
+    <svg class="teia-svg teia-svg-3" viewBox="0 0 44 44">
+      <path class="linha-teia" d="M0 44 L44 44 M0 44 L0 0 M0 44 L22 22"/>
+      <path class="linha-teia fina" d="M4 40 Q14 42 18 36"/>
+    </svg>
+    <div class="alcapao-porta tremido1">
+      <div class="alcapao-tabua"></div>
+      <div class="alcapao-tabua"></div>
+      <div class="alcapao-tabua"></div>
+      <div class="alcapao-fenda"></div>
+      <div class="alcapao-dobradica esquerda"></div>
+      <div class="alcapao-dobradica direita"></div>
+      <div class="alcapao-argola"></div>
+    </div>
+  </div>
+
+  <article class="porta" data-porta="4">
+    <div class="porta-visual" data-estado="fechada"></div>
+    <h3 class="porta-titulo">O Natal</h3>
+    <p class="porta-subtitulo">Eu tinha me sentido acolhido, foi bem legal.</p>
+    <div class="porta-conteudo" hidden>
+      <div class="porta-midias">
+        <img class="porta-midia" src="foto/nat.jpg" alt="">
+        <img class="porta-midia" src="foto/nat2.jpg" alt="">
+        <img class="porta-midia" src="foto/nat3.jpg" alt="">
+        <img class="porta-midia" src="foto/nat4.jpg" alt="">
+      </div>
+      <div class="porta-acoes">
+        <button class="botao-tremido botao-baixar" type="button">Baixar fotos</button>
+        <button class="botao-tremido botao-voltar" type="button">Voltar</button>
+      </div>
+    </div>
+  </article>
+
+  <article class="porta" data-porta="5">
+    <div class="porta-visual" data-estado="fechada"></div>
+    <h3 class="porta-titulo">Recém-chegado</h3>
+    <p class="porta-subtitulo">A gente estava vendo se era real, ou imaginação mesmo.</p>
+    <div class="porta-conteudo" hidden>
+      <div class="porta-midias">
+        <img class="porta-midia" src="foto/rc1.jpg" alt="">
+        <img class="porta-midia" src="foto/rc2.jpg" alt="">
+        <img class="porta-midia" src="foto/rc3.jpg" alt="">
+      </div>
+      <div class="porta-acoes">
+        <button class="botao-tremido botao-baixar" type="button">Baixar fotos</button>
+        <button class="botao-tremido botao-voltar" type="button">Voltar</button>
+      </div>
+    </div>
+  </article>
+
+  <article class="porta" data-porta="6">
+    <div class="porta-visual" data-estado="fechada"></div>
+    <h3 class="porta-titulo">O Shopping</h3>
+    <p class="porta-subtitulo">Se eu soubesse que era tão divertido zanzar sem motivo.</p>
+    <div class="porta-conteudo" hidden>
+      <div class="porta-midias">
+        <img class="porta-midia" src="foto/sho1.jpg" alt="">
+        <img class="porta-midia" src="foto/sho2.jpg" alt="">
+        <img class="porta-midia" src="foto/sho3.jpg" alt="">
+      </div>
+      <div class="porta-acoes">
+        <button class="botao-tremido botao-baixar" type="button">Baixar fotos</button>
+        <button class="botao-tremido botao-voltar" type="button">Voltar</button>
+      </div>
+    </div>
+  </article>
+
+    <article class="porta" data-porta="7">
+    <div class="porta-visual" data-estado="fechada"></div>
+    <h3 class="porta-titulo">Big Parque</h3>
+    <p class="porta-subtitulo">Como pode tudo ter sido tão rápido?</p>
+    <div class="porta-conteudo" hidden>
+      <div class="porta-midias">
+        <img class="porta-midia" src="foto/bp1.jpg" alt="">
+        <img class="porta-midia" src="foto/bp2.jpg" alt="">
+        <img class="porta-midia" src="foto/bp3.jpg" alt="">
+      </div>
+      <div class="porta-acoes">
+        <button class="botao-tremido botao-baixar" type="button">Baixar fotos</button>
+        <button class="botao-tremido botao-voltar" type="button">Voltar</button>
+      </div>
+    </div>
+  </article>
+
+      <article class="porta" data-porta="7">
+    <div class="porta-visual" data-estado="fechada"></div>
+    <h3 class="porta-titulo">Ano Novo</h3>
+    <p class="porta-subtitulo">Eu tinha tudo que me alegrava ali.</p>
+    <div class="porta-conteudo" hidden>
+      <div class="porta-midias">
+        <img class="porta-midia" src="foto/an.jpg" alt="">
+        <img class="porta-midia" src="foto/an2.jpg" alt="">
+      </div>
+      <div class="porta-acoes">
+        <button class="botao-tremido botao-baixar" type="button">Baixar fotos</button>
+        <button class="botao-tremido botao-voltar" type="button">Voltar</button>
+      </div>
+    </div>
+  </article>
+
+       <article class="porta" data-porta="7">
+    <div class="porta-visual" data-estado="fechada"></div>
+    <h3 class="porta-titulo">Indo Embora</h3>
+    <p class="porta-subtitulo">Foi duro dizer adeus, quando vi beleza onde eu não via vida.</p>
+    <div class="porta-conteudo" hidden>
+      <div class="porta-midias">
+        <img class="porta-midia" src="foto/ad.jpg" alt="">
+        <img class="porta-midia" src="foto/ad2.jpg" alt="">
+      </div>
+      <div class="porta-acoes">
+        <button class="botao-tremido botao-baixar" type="button">Baixar fotos</button>
+        <button class="botao-tremido botao-voltar" type="button">Voltar</button>
+      </div>
+    </div>
+  </article>
+
+  <div id="secao-final">
+    <p id="final-texto"></p>
+    <div id="final-passo1">
+      <button class="botao-tremido" id="botao-final-1" type="button">Você já viu tudo, ou já se decidiu do bastante?</button>
+    </div>
+    <div id="final-passo2">
+      <p id="final-encerramento"></p>
+      <a class="botao-tremido" id="final-link" href="https://drive.google.com/drive/folders/196VP2PXtWs8BCUi1Pf2OmuabYpsdlIHd?usp=sharing">Ir para o acervo completo</a>
+    </div>
+  </div>
+
+</div>
+
+<div class="overlay-cheia" id="modal-confirmar">
+  <div class="caixa-modal tremido1">
+    <p id="modal-confirmar-texto">Tem certeza?</p>
+    <div class="botoes">
+      <button class="botao-tremido" id="modal-sim" type="button">Sim</button>
+      <button class="botao-tremido" id="modal-nao" type="button">Não</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay-cheia" id="cena-sotao">
+  <button class="botao-tremido" id="voltar-corredor" type="button">Voltar</button>
+  <p id="sotao-texto" class="fonte-mao"></p>
+  <div id="caixa">
+    <div class="caixa-tampa tremido1"></div>
+    <div class="caixa-corpo tremido1"></div>
+  </div>
+  <div id="sotao-chao"></div>
+</div>
+
+<div class="overlay-cheia" id="visualizador-carta">
+  <div id="envelope-abrir">
+    <div class="envelope-corpo"></div>
+  </div>
+  <h2 id="carta-titulo"></h2>
+  <div id="carta-papel">
+    <p id="carta-corpo"></p>
+  </div>
+  <button class="botao-tremido voltar-pequeno" id="voltar-carta" type="button">Voltar</button>
+</div>
+
+<div class="overlay-cheia" id="visualizador-moldura">
+  <img id="moldura-grande" src="" alt="">
+  <p id="moldura-legenda"></p>
+  <button class="botao-tremido voltar-pequeno" id="voltar-moldura" type="button">Voltar</button>
+</div>
+
+<div class="overlay-cheia" id="visualizador-foto">
+  <img id="foto-grande" src="" alt="">
+  <button class="botao-tremido voltar-pequeno" id="voltar-foto" type="button">Voltar</button>
+</div>
+
+<script>
+(() => {
+    const audio = new Audio("foto/aud.mp3");
+    audio.preload = "auto";
+    audio.loop = true;
+    audio.volume = 0.06;
+
+    let iniciado = false;
+
+    function iniciarMusica() {
+        if (iniciado) return;
+        iniciado = true;
+
+        audio.play().catch(() => {
+            iniciado = false;
+        });
+    }
+
+    window.addEventListener("pointerdown", iniciarMusica, { once: true });
+    window.addEventListener("keydown", iniciarMusica, { once: true });
+})();
+const cartas = [
+  {titulo:"15/06/26", conteudo:"Eu tô muito ansioso!!!\n\nMariazinha do céu, eu não sei, eu sinto um choque de adrenalina, ânimo, não sei.. é tão estranho sentir isso, a vida nunca é ou foi um filme, eu sei que eu ainda tô bloqueado, mas eu sonhei com isso, eu vi isso, eu vou lutar por você até a última gota, caraca que ansiedade, só mais um pouquinho e tudo vai acontecer"},
+  {titulo:"01/06/26", conteudo:"É agora?\n\nCara... cara não né, meu amor, meu amooor que loucura. Eu tô confuso pra ser sincero, mas tudo isso vai ser engraçado futuramente quando a gente ler isso junto. A gente brigou e você veio me buscar, você disse exatamente o que eu queria ouvir, eu tô meio apático por fora, admito que com um pouco de medo, mas... será Deus? Ela voltou de vez? Caralho, eu quero chorar de felicidade, mas eu não posso fazer isso ou falar pra ti ainda, vai me achar desesperado. Mas falando sério agora, é tão curioso como eu decidi começar uma coletânea de diários antes de você voltar a falar comigo, e tudo tá caminhando tão bem do nada, quando eu te der sua aliança nova que comprei, vamos ler isso juntos."},
+  {titulo:"05/06/26", conteudo:"Agoniado\n\nEu não acredito que teve uma briga quando eu só queria que a gente resolvesse tudo, poxa. Meu irmão tava certo de dizer que a gente erra no início, e vai errando até aprender, mas eu queria ser mais importante, como posso amar alguém com todo o meu ser e ainda assim acabamos por nos desentendermos? Eu quebro um pouco essa quarta parede, porquê Deus sabe que eu faço essas cartas esperando que um dia leiamos juntos, que riamos, choremos e o que for necessário enquanto houver essa leitura, mas saber que no final nós dois ficamos acima de tudo isso, eu admito que ainda tenho tanto pra melhorar, e eu me levanto e vejo esse horizonte de falhas... mas esse raio de sol de esperança me serve de lembrete que eu posso melhorar, e que você me ama, e que eu te amo, e que nós dois podemos nos amar ainda mais. Essa luta não acaba aqui."},
+  {titulo:"13/06/26", conteudo:"Daniel?\n\nOh Deus. Eu não consigo conceber uma idéia de que eu fui enganado... como pude merecer isso? Porque eu fui trocado por eles? Porque cada um deles tem tudo que eu não tive? Poxa, senhor. Eu muitas vezes me perguntei se ainda haveria esperança pra alguém tão... sem qualidades como eu, eu sou merecedor de amor? Eu sou tão baixo... não sou forte, não sou bonito, não sou inteligente, não sou nada, e ainda assim eu fui amado por alguém tão incrível quanto você. Eu não consigo conceber a idéia de que eu fui trocado por eles, e que eu não posso fazer nada pra mudar isso. Eu não posso te obrigar a me amar, mas eu posso te implorar pra me dar uma chance de te mostrar que eu posso ser melhor, que eu posso ser o homem que você merece. Eu te amo tanto, e eu não quero te perder. Mas me parte tanto o coração que eles mereceram o seu amor e sua honestidade, e eu te perdoei como a primeira reação que tive e... ah cara, eu não sei como lidar com substituição."},
+  {titulo:"20/06/26", conteudo:"Hotel\n\nEsse hotel é frio, vazio e me lembra a calçada da rua da casa dela, eu estou sem chão, eu chorei, chorei e implorei ontem ao dormir, eu não quis te assustar, Maria... eu queria apenas te abraçar e tomar um sorvete contigo pra reatar nossas coisas, mas ser mandado embora? Ser tratado como um animal da forma que fui...? Cara, como pode todo o meu esforço ir em vão assim, eu sofri um acidente, estou com tanta dor e não posso falar para não soar como um chantagista ou um manipulador emocional, mas eu não posso te perder, eu não posso perder você, eu não posso perder a única pessoa que me faz sentir vivo, que me faz sentir amado, que me faz sentir que eu sou alguém. Eu te amo tanto, Maria... e eu não sei como lidar com isso. Como você pode não querer me ver? Como pode ter parado de me amar, mas ter dado amor à outras pessoas que não fariam 1% do que eu faria por você? Eu me sinto um cachorro abandonado."},
+  {titulo:"29/06/26", conteudo:"Vida\n\nComo a vida pode ter sido tão cruel comigo? Esse é meu último diário, Maria. Eu não posso mais escrever, eu não posso mais te ver, eu não posso mais te amar. Eu não posso mais viver sem você, e eu não posso mais suportar essa dor. Eu te amo tanto, Maria. Eu não sei como seguir em frente sem você. Eu não sei como viver sem você. Eu não sei como respirar sem você. Eu não sei como existir sem você. É tão trágico ter sido criado para amar alguém até o fim, alguém que parou de me amar, alguém que me comparou, que mentiu pra mim, que me causou tanto mal, mas meu amo e minha fé em Deus me fizeram seguir por essa pessoa, eu espero que se essa não for minha última entrada nesse diário, que isso sirva como um testemunho do nosso amor um pelo outro. Eu não fui infantil ou irresponsável, eu te amei até o fim, além das dores, além dos limites, além de qualquer limite humano, todos estão me aclamando pela minha coragem aqui, alguns amigos que souberam, meus irmãos, meus pais. Mas...eu não queria ser aclamado pela coragem ou por quanto amei, eu queria ter ficado contigo e construido uma vida contigo. E bem... é isso, veremos aos próximos dias como tudo continua."}
+];
+
+const molduras = [
+  {legenda:"Dentre as luzes, teus olhos eram os mais brilhosos e belos", src:"foto/mo.jpg"},
+  {legenda:":)", src:"foto/mo2.jpg"},
+  {legenda:"Inhotim é legal", src:"foto/mo3.jpg"}
+];
+
+const portasAbertas = new Set();
+let contextoAudio = null;
+
+function obterContextoAudio(){
+  if(!contextoAudio){
+    contextoAudio = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  return contextoAudio;
+}
+
+function tocarTecla(){
+  try{
+    const ctx = obterContextoAudio();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "square";
+    osc.frequency.value = 850 + Math.random()*350;
+    gain.gain.setValueAtTime(0.045, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.045);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.05);
+  }catch(erro){}
+}
+
+function datilografar(elemento, texto, velocidade, aoTerminar){
+  elemento.textContent = "";
+  let i = 0;
+  function passo(){
+    if(i < texto.length){
+      elemento.textContent += texto[i];
+      if(texto[i].trim() !== "") tocarTecla();
+      i++;
+      setTimeout(passo, velocidade + Math.random()*35);
+    } else if(aoTerminar){
+      aoTerminar();
+    }
+  }
+  passo();
+}
+
+function pedirConfirmacao(texto, aoConfirmar){
+  const modal = document.getElementById("modal-confirmar");
+  document.getElementById("modal-confirmar-texto").textContent = texto;
+  modal.classList.add("visivel");
+  const botaoSim = document.getElementById("modal-sim");
+  const botaoNao = document.getElementById("modal-nao");
+  function limpar(){
+    botaoSim.removeEventListener("click", aoSim);
+    botaoNao.removeEventListener("click", aoNao);
+    modal.classList.remove("visivel");
+  }
+  function aoSim(){ limpar(); aoConfirmar(); }
+  function aoNao(){ limpar(); }
+  botaoSim.addEventListener("click", aoSim);
+  botaoNao.addEventListener("click", aoNao);
+}
+
+window.addEventListener("load", ()=>{
+  setTimeout(()=>{
+    document.getElementById("tela-carregando").classList.add("escondida");
+    montarTrilha();
+  }, 2600);
+});
+
+function montarTrilha(){
+  const trilha = document.getElementById("trilha");
+  const corredor = document.getElementById("corredor");
+  const altura = corredor.scrollHeight;
+  trilha.style.height = altura + "px";
+  const passo = 190;
+  let y = 260;
+  const pegadas = [];
+  while(y < altura - 200){
+    const pegada = document.createElement("div");
+    pegada.className = "pegada";
+    const lado = pegadas.length % 2 === 0 ? 4 : 24;
+    pegada.style.top = y + "px";
+    pegada.style.left = lado + "px";
+    pegada.style.transform = "rotate(" + (Math.random()*16-8) + "deg)";
+    trilha.appendChild(pegada);
+    pegadas.push(pegada);
+    y += passo;
+  }
+  const observador = new IntersectionObserver((entradas)=>{
+    entradas.forEach(entrada=>{
+      if(entrada.isIntersecting){
+        entrada.target.classList.add("visivel");
+        observador.unobserve(entrada.target);
+      }
+    });
+  }, {threshold:0.4});
+  pegadas.forEach(p=>observador.observe(p));
+}
+
+document.querySelectorAll(".porta").forEach(porta=>{
+  const visual = porta.querySelector(".porta-visual");
+  const conteudo = porta.querySelector(".porta-conteudo");
+  const botaoVoltar = porta.querySelector(".botao-voltar");
+  const botaoBaixar = porta.querySelector(".botao-baixar");
+  visual.addEventListener("click", ()=>{
+    if(conteudo.hasAttribute("hidden")){
+      conteudo.removeAttribute("hidden");
+      visual.dataset.estado = "aberta";
+      portasAbertas.add(porta.dataset.porta);
+    }
+  });
+  botaoVoltar.addEventListener("click", ()=>{
+    conteudo.setAttribute("hidden","");
+  });
+  porta.querySelectorAll(".porta-midia").forEach(img=>{
+    img.addEventListener("click", ()=>{
+      document.getElementById("foto-grande").src = img.src;
+      document.getElementById("visualizador-foto").classList.add("visivel");
+    });
+  });
+  botaoBaixar.addEventListener("click", ()=>{
+    const midias = porta.querySelectorAll(".porta-midia");
+    midias.forEach((img, indice)=>{
+      setTimeout(()=>{
+        const link = document.createElement("a");
+        link.href = img.src;
+        link.download = "";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }, indice*350);
+    });
+  });
+});
+
+document.getElementById("voltar-foto").addEventListener("click", ()=>{
+  document.getElementById("visualizador-foto").classList.remove("visivel");
+});
+
+document.getElementById("alcapao").addEventListener("click", ()=>{
+  pedirConfirmacao("Tem certeza?", abrirSotao);
+});
+
+function abrirSotao(){
+  const cena = document.getElementById("cena-sotao");
+  cena.classList.add("visivel");
+  document.getElementById("sotao-texto").textContent = "";
+  datilografar(document.getElementById("sotao-texto"), "Algumas cartas que eu pensei que seriam um testemunho nosso um dia. Se você já abriu a carta, não a feche no meio.", 55);
+}
+
+document.getElementById("voltar-corredor").addEventListener("click", ()=>{
+  document.getElementById("cena-sotao").classList.remove("visivel");
+});
+
+document.getElementById("caixa").addEventListener("click", function ao(){
+  if(this.classList.contains("aberta")) return;
+  pedirConfirmacao("Abrir a caixa?", ()=>{
+    document.getElementById("caixa").classList.add("aberta");
+    setTimeout(espalharItens, 500);
+  });
+});
+
+const itensFisica = [];
+
+function espalharItens(){
+  const chao = document.getElementById("sotao-chao");
+  const centroX = chao.clientWidth/2 - 46;
+  cartas.forEach((carta, indice)=>{
+    const el = document.createElement("div");
+    el.className = "item-fisica";
+    el.innerHTML = '<div class="envelope-corpo"></div>';
+    chao.appendChild(el);
+    const item = criarItemFisica(el, centroX, 10);
+    item.aoClicar = ()=> abrirVisualizadorCarta(carta);
+  });
+  molduras.forEach((moldura, indice)=>{
+    const el = document.createElement("div");
+    el.className = "item-fisica moldura-item";
+    el.innerHTML = '<img src="' + moldura.src + '" alt="">';
+    chao.appendChild(el);
+    const item = criarItemFisica(el, centroX, 10);
+    item.aoClicar = ()=> abrirVisualizadorMoldura(moldura);
+  });
+  requestAnimationFrame(loopFisica);
+}
+
+function criarItemFisica(el, x, y){
+  const item = {
+    el, x, y,
+    vx:(Math.random()-0.5)*7,
+    vy:-7-Math.random()*3,
+    rot:(Math.random()-0.5)*40,
+    vrot:(Math.random()-0.5)*8,
+    pousado:false,
+    arrastando:false,
+    aoClicar:null
+  };
+  itensFisica.push(item);
+  configurarArraste(item);
+  return item;
+}
+
+function configurarArraste(item){
+  let inicioX, inicioY, ultimoX, ultimoY, tempoInicio, moveu;
+  item.el.addEventListener("pointerdown", e=>{
+    item.arrastando = true;
+    item.pousado = false;
+    item.el.setPointerCapture(e.pointerId);
+    inicioX = e.clientX; inicioY = e.clientY;
+    ultimoX = e.clientX; ultimoY = e.clientY;
+    tempoInicio = Date.now();
+    moveu = false;
+  });
+  item.el.addEventListener("pointermove", e=>{
+    if(!item.arrastando) return;
+    const dx = e.clientX - ultimoX;
+    const dy = e.clientY - ultimoY;
+    if(Math.abs(e.clientX-inicioX) > 4 || Math.abs(e.clientY-inicioY) > 4) moveu = true;
+    item.x += dx;
+    item.y += dy;
+    item.vx = dx;
+    item.vy = dy;
+    ultimoX = e.clientX;
+    ultimoY = e.clientY;
+  });
+  item.el.addEventListener("pointerup", e=>{
+    item.arrastando = false;
+    const rapido = Date.now() - tempoInicio < 350;
+    if(!moveu && rapido && item.aoClicar){
+      item.aoClicar();
+    }
+  });
+}
+
+function loopFisica(){
+  const chao = document.getElementById("sotao-chao");
+  const limite = chao.clientHeight - 70;
+  const largura = chao.clientWidth - 90;
+  itensFisica.forEach(item=>{
+    if(item.arrastando){
+      item.el.style.transform = "translate(" + item.x + "px," + item.y + "px) rotate(" + item.rot + "deg)";
+      return;
+    }
+    if(!item.pousado){
+      item.vy += 0.5;
+      item.x += item.vx;
+      item.y += item.vy;
+      item.rot += item.vrot;
+      if(item.y >= limite){
+        item.y = limite;
+        item.vy *= -0.25;
+        item.vx *= 0.6;
+        item.vrot *= 0.5;
+        if(Math.abs(item.vy) < 0.6){ item.vy = 0; item.pousado = true; }
+      }
+      if(item.x < 0){ item.x = 0; item.vx *= -0.5; }
+      if(item.x > largura){ item.x = largura; item.vx *= -0.5; }
+    } else if(item.y > limite){
+      item.y = limite;
+    }
+    item.el.style.transform = "translate(" + item.x + "px," + item.y + "px) rotate(" + item.rot + "deg)";
+  });
+  requestAnimationFrame(loopFisica);
+}
+
+let cartaAtual = null;
+
+function abrirVisualizadorCarta(carta){
+  cartaAtual = carta;
+  const vis = document.getElementById("visualizador-carta");
+  vis.classList.add("visivel");
+  document.getElementById("envelope-abrir").style.display = "block";
+  document.getElementById("carta-titulo").textContent = "";
+  document.getElementById("carta-corpo").textContent = "";
+  document.getElementById("carta-papel").classList.remove("mostrando");
+}
+
+document.getElementById("envelope-abrir").addEventListener("click", function(){
+  this.style.display = "none";
+  datilografar(document.getElementById("carta-titulo"), cartaAtual.titulo, 60, ()=>{
+    document.getElementById("carta-papel").classList.add("mostrando");
+    datilografar(document.getElementById("carta-corpo"), cartaAtual.conteudo, 26);
+  });
+});
+
+document.getElementById("voltar-carta").addEventListener("click", ()=>{
+  document.getElementById("visualizador-carta").classList.remove("visivel");
+});
+
+function abrirVisualizadorMoldura(moldura){
+  document.getElementById("moldura-grande").src = moldura.src;
+  document.getElementById("moldura-legenda").textContent = moldura.legenda;
+  document.getElementById("visualizador-moldura").classList.add("visivel");
+}
+
+document.getElementById("voltar-moldura").addEventListener("click", ()=>{
+  document.getElementById("visualizador-moldura").classList.remove("visivel");
+});
+
+const observadorFinal = new IntersectionObserver((entradas)=>{
+  entradas.forEach(entrada=>{
+    if(entrada.isIntersecting){
+      revelarTextoFinal();
+      observadorFinal.disconnect();
+    }
+  });
+}, {threshold:0.5});
+observadorFinal.observe(document.getElementById("secao-final"));
+
+function revelarTextoFinal(){
+  const todasPortas = document.querySelectorAll(".porta");
+  const fechadas = [];
+  todasPortas.forEach(porta=>{
+    if(!portasAbertas.has(porta.dataset.porta)){
+      fechadas.push(porta.querySelector(".porta-titulo").textContent);
+    }
+  });
+  let texto = "Você já viu tudo, ou já se decidiu do bastante?";
+  if(fechadas.length === 1){
+    texto += " Ficou a porta \"" + fechadas[0] + "\" fechada.";
+  } else if(fechadas.length > 1){
+    texto += " Ficaram algumas portas fechadas...";
+  }
+  datilografar(document.getElementById("final-texto"), texto, 40);
+}
+
+document.getElementById("botao-final-1").addEventListener("click", function(){
+  this.style.display = "none";
+  document.getElementById("final-passo2").style.display = "block";
+  datilografar(document.getElementById("final-encerramento"), "Obrigado por ter chegado até aqui. E desculpa a idiotice que eu gastei fazendo tudo isso, foi um tempão mesmo, mas sei lá, acho que vale o esforço. Mas sério, obrigado kkk, me sinto mais leve depois disso.", 32, ()=>{
+    document.getElementById("final-link").style.display = "inline-block";
+  });
+});
+
+</script>
+</body>
+</html>

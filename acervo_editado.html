@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>ainda aqui</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Special+Elite&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0b0908;
+  --paper:#ece4d3;
+  --paper-dim:#b9ae98;
+  --muted:#6f6656;
+  --wax:#7a1f1f;
+  --wax-dark:#3c0d0d;
+  --ember:#c17a3d;
+  --line:#d8cdb8;
+}
+*{box-sizing:border-box;}
+html,body{
+  margin:0;
+  padding:0;
+  height:100%;
+  overflow:hidden;
+  background:var(--ink);
+  -webkit-tap-highlight-color:transparent;
+}
+body{
+  font-family:'Special Elite',monospace;
+  color:var(--paper);
+  user-select:none;
+}
+input,button{font-family:inherit;}
+.scene{
+  position:fixed;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  transition:opacity 1.1s ease;
+  background:var(--ink);
+}
+.scene.active{
+  opacity:1;
+  visibility:visible;
+  pointer-events:auto;
+}
+#scene-loading{z-index:10;}
+#scene-clock{z-index:9;cursor:pointer;}
+#scene-letter{z-index:8;}
+#scene-reading{
+  z-index:7;
+  background:var(--paper);
+  color:var(--ink);
+  transition:opacity 1.1s ease;
+}
+#scene-final{
+  z-index:20;
+  background:var(--ink);
+  transform:translateY(100%);
+  transition:transform 2.4s cubic-bezier(.65,.05,.36,1);
+}
+#scene-final.slide-in{transform:translateY(0);}
+#scene-reading.leaving{
+  transform:translateY(-100%);
+  transition:transform 2.4s cubic-bezier(.65,.05,.36,1);
+}
+#scene-soon{z-index:8;}
+.vignette{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  background:radial-gradient(circle at 50% 45%, transparent 32%, rgba(0,0,0,.9) 100%);
+  animation:breathe 9s ease-in-out infinite;
+  z-index:15;
+}
+@keyframes breathe{
+  0%,100%{opacity:.75;}
+  50%{opacity:1;}
+}
+.scanlines{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:16;
+  opacity:.35;
+  mix-blend-mode:overlay;
+  background:repeating-linear-gradient(to bottom, rgba(255,255,255,.05) 0px, rgba(255,255,255,.05) 1px, transparent 2px, transparent 4px);
+}
+.loading-line{
+  width:2px;
+  height:1px;
+  background:var(--muted);
+  animation:load-grow 1.7s ease-in-out forwards;
+}
+@keyframes load-grow{
+  0%{width:2px;opacity:.2;}
+  55%{width:120px;opacity:.8;}
+  100%{width:2px;opacity:0;}
+}
+.clock{
+  font-size:clamp(38px,9vw,74px);
+  letter-spacing:.06em;
+  color:var(--paper-dim);
+  animation:flicker 7s infinite;
+  text-shadow:0 0 18px rgba(184,164,120,.15);
+}
+.clock-date{
+  margin-top:.6rem;
+  font-size:clamp(11px,2vw,13px);
+  letter-spacing:.35em;
+  text-transform:uppercase;
+  color:var(--muted);
+}
+@keyframes flicker{
+  0%,100%{opacity:1;}
+  91%{opacity:1;}
+  92%{opacity:.35;}
+  93%{opacity:.9;}
+  95%{opacity:.5;}
+  96%{opacity:1;}
+}
+.continue-hint{
+  position:absolute;
+  bottom:9vh;
+  font-family:'Caveat',cursive;
+  font-size:clamp(18px,3.4vw,24px);
+  color:var(--muted);
+  opacity:0;
+  transition:opacity 1.6s ease;
+}
+.continue-hint.show{opacity:.85;animation:hint-pulse 3.4s ease-in-out infinite;}
+@keyframes hint-pulse{
+  0%,100%{opacity:.55;}
+  50%{opacity:.95;}
+}
+.envelope-wrap{
+  position:relative;
+  width:min(74vw,320px);
+}
+.envelope{
+  width:100%;
+  height:auto;
+  display:block;
+  filter:url(#wobble);
+}
+.seal{
+  position:absolute;
+  top:60%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  width:clamp(70px,18vw,96px);
+  height:clamp(70px,18vw,96px);
+  background:none;
+  border:none;
+  padding:0;
+  cursor:pointer;
+  filter:url(#wobble);
+  transition:transform .7s cubic-bezier(.55,0,.45,1), opacity .7s ease;
+}
+.seal:hover{filter:url(#wobbleFast);}
+.seal svg{width:100%;height:100%;display:block;}
+.seal.cracked{
+  transform:translate(-50%,-50%) scale(.5) rotate(24deg);
+  opacity:0;
+  pointer-events:none;
+}
+.note{
+  margin-top:2.4rem;
+  text-align:center;
+  opacity:0;
+  transform:translateY(10px);
+  transition:opacity 1s ease, transform 1s ease;
+  pointer-events:none;
+}
+.note.show{opacity:1;transform:translateY(0);pointer-events:auto;}
+.riddle{
+  font-family:'Caveat',cursive;
+  font-size:clamp(19px,3.6vw,26px);
+  color:var(--paper-dim);
+  max-width:290px;
+  margin:0 auto 1.1rem;
+  line-height:1.35;
+}
+#codeForm{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:.8rem;
+}
+#codeInput{
+  background:transparent;
+  border:none;
+  border-bottom:2px solid var(--line);
+  color:var(--paper);
+  font-size:clamp(15px,3vw,18px);
+  letter-spacing:.3em;
+  text-align:center;
+  width:clamp(150px,42vw,210px);
+  padding:.35rem .2rem;
+  outline:none;
+}
+#codeInput:focus-visible{border-bottom-color:var(--ember);}
+.note button[type="submit"]{
+  background:none;
+  border:1px solid var(--line);
+  border-radius:3px 12px 5px 11px/9px 4px 12px 3px;
+  color:var(--paper-dim);
+  width:2.4rem;
+  height:2.4rem;
+  font-size:1rem;
+  cursor:pointer;
+  filter:url(#wobble);
+}
+.note button[type="submit"]:hover{filter:url(#wobbleFast);color:var(--ember);}
+.hint-error{
+  margin-top:.8rem;
+  font-family:'Caveat',cursive;
+  font-size:clamp(15px,2.8vw,18px);
+  color:var(--wax);
+  opacity:0;
+  height:1.4em;
+}
+.hint-error.show{opacity:.9;animation:shake .4s ease;}
+@keyframes shake{
+  0%,100%{transform:translateX(0);}
+  25%{transform:translateX(-6px);}
+  75%{transform:translateX(6px);}
+}
+#flash{
+  position:fixed;
+  inset:0;
+  background:#f5efe0;
+  opacity:0;
+  transition:opacity .95s ease;
+  z-index:50;
+  pointer-events:none;
+}
+body.flash-on #flash{opacity:1;}
+.page{
+  max-width:640px;
+  width:100%;
+  padding:9vh 7vw 8vh;
+  overflow-y:auto;
+  max-height:100vh;
+}
+.letter-line{
+  margin:0 0 1.15em;
+  font-size:clamp(15px,2.3vw,19px);
+  line-height:1.8;
+  white-space:pre-wrap;
+}
+.letter-line.question{
+  margin-top:1.6em;
+  font-family:'Caveat',cursive;
+  font-size:clamp(20px,3.4vw,27px);
+  color:var(--wax-dark);
+}
+.caret{
+  display:inline-block;
+  width:.5em;
+  background:var(--ink);
+  animation:blink 1s step-start infinite;
+}
+@keyframes blink{50%{opacity:0;}}
+.choice-row{
+  display:flex;
+  gap:2.6rem;
+  justify-content:center;
+  margin-top:2.6rem;
+  opacity:0;
+  transition:opacity 1.2s ease;
+}
+.choice-row.show{opacity:1;}
+.choice{
+  background:none;
+  border:2px solid var(--ink);
+  border-radius:4px 14px 5px 12px/10px 4px 13px 5px;
+  font-family:'Caveat',cursive;
+  font-size:clamp(20px,3.4vw,26px);
+  padding:.35rem 1.8rem;
+  color:var(--ink);
+  cursor:pointer;
+  filter:url(#wobble);
+  transition:color .35s ease;
+}
+.choice:hover{filter:url(#wobbleFast);color:var(--wax);}
+.final-text{
+  font-size:clamp(20px,3.6vw,30px);
+  color:var(--paper-dim);
+  text-align:center;
+  min-height:2em;
+}
+#blackout{
+  position:fixed;
+  inset:0;
+  background:#000;
+  opacity:0;
+  transition:opacity 2.4s ease;
+  z-index:100;
+  pointer-events:none;
+}
+#blackout.on{opacity:1;}
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;}
+  .envelope,.seal,.choice,.note button[type="submit"]{filter:none !important;}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+<defs>
+<filter id="wobble" x="-25%" y="-25%" width="150%" height="150%">
+<feTurbulence type="fractalNoise" baseFrequency="0.045" numOctaves="2" seed="2" result="n1">
+<animate attributeName="seed" values="1;4;2;9;5;7;3;10;6;8;1" dur="1.7s" calcMode="discrete" repeatCount="indefinite"/>
+</feTurbulence>
+<feDisplacementMap in="SourceGraphic" in2="n1" scale="2.4" xChannelSelector="R" yChannelSelector="G"/>
+</filter>
+<filter id="wobbleFast" x="-25%" y="-25%" width="150%" height="150%">
+<feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" seed="3" result="n2">
+<animate attributeName="seed" values="2;8;3;10;4;9;1;7;5;6;2" dur="0.55s" calcMode="discrete" repeatCount="indefinite"/>
+</feTurbulence>
+<feDisplacementMap in="SourceGraphic" in2="n2" scale="3.6" xChannelSelector="R" yChannelSelector="G"/>
+</filter>
+<radialGradient id="waxGradient" cx="38%" cy="34%" r="70%">
+<stop offset="0%" stop-color="#9c3434"/>
+<stop offset="55%" stop-color="#7a1f1f"/>
+<stop offset="100%" stop-color="#3c0d0d"/>
+</radialGradient>
+</defs>
+</svg>
+
+<div class="vignette"></div>
+<div class="scanlines"></div>
+<div id="flash"></div>
+<div id="blackout"></div>
+
+<div class="scene active" id="scene-loading">
+<div class="loading-line"></div>
+</div>
+
+<div class="scene" id="scene-clock">
+<div class="clock" id="clockDigits">00:00:00</div>
+<div class="clock-date" id="clockDate">—</div>
+<div class="continue-hint" id="continueHint">toque em qualquer lugar</div>
+</div>
+
+<div class="scene" id="scene-letter">
+<div class="envelope-wrap">
+<svg class="envelope" viewBox="0 0 260 180" xmlns="http://www.w3.org/2000/svg">
+<rect x="18" y="28" width="224" height="142" rx="3" fill="rgba(236,228,211,0.02)" stroke="#d8cdb8" stroke-width="2"/>
+<rect x="19" y="29" width="222" height="140" rx="3" fill="none" stroke="#d8cdb8" stroke-width="1" opacity="0.35"/>
+<path d="M18,29 L130,112 L242,29" fill="none" stroke="#d8cdb8" stroke-width="2"/>
+<path d="M19,31 L130,115 L241,31" fill="none" stroke="#d8cdb8" stroke-width="1" opacity="0.35"/>
+<path d="M18,170 L96,104" fill="none" stroke="#d8cdb8" stroke-width="1.4" opacity="0.6"/>
+<path d="M242,170 L164,104" fill="none" stroke="#d8cdb8" stroke-width="1.4" opacity="0.6"/>
+</svg>
+<button class="seal" id="sealBtn" aria-label="Abrir a carta">
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+<circle cx="50" cy="50" r="35" fill="url(#waxGradient)"/>
+<path d="M32,52 Q50,30 68,52" fill="none" stroke="#2c0a0a" stroke-width="2" opacity="0.55"/>
+<path d="M32,58 Q50,66 68,58" fill="none" stroke="#2c0a0a" stroke-width="2" opacity="0.4"/>
+<circle cx="50" cy="50" r="35" fill="none" stroke="#2c0a0a" stroke-width="1.2" opacity="0.5"/>
+</svg>
+</button>
+</div>
+<div class="note" id="note">
+<p class="riddle">Nas suas flores, há algo que te ajude com isso.</p>
+<form id="codeForm" autocomplete="off">
+<input id="codeInput" type="text" inputmode="numeric" maxlength="14" placeholder="••••••••" aria-label="Código">
+<p class="riddle">Aqui embaixo é seu aniversário.</p>
+<input id="birthInput" type="text" inputmode="numeric" maxlength="10" placeholder="00/00/0000" aria-label="Aniversário" style="background:transparent;border:none;border-bottom:2px solid var(--line);color:var(--paper);font-size:clamp(15px,3vw,18px);letter-spacing:.15em;text-align:center;width:clamp(150px,42vw,210px);padding:.35rem .2rem;outline:none;">
+<button type="submit" aria-label="Confirmar">▸</button>
+</form>
+<p class="hint-error" id="hintError">não é isso...</p>
+</div>
+</div>
+
+<div class="scene" id="scene-reading">
+<div class="page">
+<div class="letter-body" id="letterBody"></div>
+<div class="choice-row" id="choiceRow">
+<button class="choice" id="btnYes">Sim</button>
+<button class="choice" id="btnNo">Não</button>
+</div>
+</div>
+</div>
+
+<div class="scene" id="scene-soon">
+<p class="riddle" style="max-width:320px;">Ainda estou separando o que resta. Volte aqui em breve.</p>
+</div>
+
+<div class="scene" id="scene-final">
+<div class="final-text" id="finalText"></div>
+</div>
+
+<script>
+var CODE = "18221826";
+var BIRTH = "22/01/2006";
+var audioCtx = null;
+
+function ensureAudio(){
+  if(!audioCtx){
+    var Ctx = window.AudioContext || window.webkitAudioContext;
+    if(Ctx){audioCtx = new Ctx();}
+  }
+  if(audioCtx && audioCtx.state === "suspended"){audioCtx.resume();}
+}
+
+function typeClick(soft){
+  if(!audioCtx) return;
+  var t = audioCtx.currentTime;
+  var len = Math.floor(audioCtx.sampleRate * 0.02);
+  var buffer = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+  var data = buffer.getChannelData(0);
+  for(var i=0;i<len;i++){
+    data[i] = (Math.random()*2-1) * (1 - i/len);
+  }
+  var src = audioCtx.createBufferSource();
+  src.buffer = buffer;
+  var bp = audioCtx.createBiquadFilter();
+  bp.type = "bandpass";
+  bp.frequency.value = (soft ? 1500 : 2500) + Math.random()*700;
+  bp.Q.value = 1.1;
+  var gain = audioCtx.createGain();
+  var peak = soft ? 0.07 : 0.15;
+  gain.gain.setValueAtTime(peak, t);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + 0.045);
+  src.connect(bp);
+  bp.connect(gain);
+  gain.connect(audioCtx.destination);
+  src.start(t);
+  src.stop(t + 0.05);
+}
+
+function setScene(id){
+  var scenes = document.querySelectorAll(".scene");
+  for(var i=0;i<scenes.length;i++){
+    scenes[i].classList.remove("active");
+  }
+  document.getElementById(id).classList.add("active");
+}
+
+function pad(n){return n < 10 ? "0"+n : ""+n;}
+
+function updateClock(){
+  var now = new Date();
+  var fmt = new Intl.DateTimeFormat("pt-BR", {
+    timeZone: "America/Sao_Paulo",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false
+  });
+  var parts = fmt.formatToParts(now);
+  var h = "00", m = "00", s = "00";
+  for(var i=0;i<parts.length;i++){
+    if(parts[i].type === "hour") h = parts[i].value;
+    if(parts[i].type === "minute") m = parts[i].value;
+    if(parts[i].type === "second") s = parts[i].value;
+  }
+  document.getElementById("clockDigits").textContent = h + ":" + m + ":" + s;
+
+  var dfmt = new Intl.DateTimeFormat("pt-BR", {
+    timeZone: "America/Sao_Paulo",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric"
+  });
+  document.getElementById("clockDate").textContent = dfmt.format(now);
+}
+
+window.addEventListener("load", function(){
+  setTimeout(function(){
+    setScene("scene-clock");
+    updateClock();
+    setInterval(updateClock, 1000);
+    setTimeout(function(){
+      document.getElementById("continueHint").classList.add("show");
+    }, 4200);
+  }, 1900);
+});
+
+document.getElementById("scene-clock").addEventListener("click", function(){
+  ensureAudio();
+  setScene("scene-letter");
+});
+
+var sealBtn = document.getElementById("sealBtn");
+sealBtn.addEventListener("click", function(){
+  ensureAudio();
+  typeClick(false);
+  sealBtn.classList.add("cracked");
+  setTimeout(function(){
+    document.getElementById("note").classList.add("show");
+    document.getElementById("codeInput").focus();
+  }, 650);
+});
+
+var codeForm = document.getElementById("codeForm");
+codeForm.addEventListener("submit", function(e){
+  e.preventDefault();
+  ensureAudio();
+  var val = document.getElementById("codeInput").value.trim();
+  var hint = document.getElementById("hintError");
+  var birth=document.getElementById("birthInput").value.trim();
+  if(val !== CODE){
+    hint.textContent="não é isso...";
+    hint.classList.remove("show");
+    void hint.offsetWidth;
+    hint.classList.add("show");
+    document.getElementById("codeInput").value="";
+    return;
+  }
+  if(birth !== BIRTH){
+    hint.textContent="você não é a Maria Clara.";
+    hint.classList.remove("show");
+    void hint.offsetWidth;
+    hint.classList.add("show");
+    document.getElementById("birthInput").value="";
+    return;
+  }
+  hint.classList.remove("show");
+  codeForm.querySelector("button").disabled=true;
+  document.getElementById("codeInput").disabled=true;
+  document.getElementById("birthInput").disabled=true;
+  unlockLetter();
+});
+
+function unlockLetter(){
+  document.body.classList.add("flash-on");
+  setTimeout(function(){
+    setScene("scene-reading");
+    setTimeout(function(){
+      document.body.classList.remove("flash-on");
+    }, 60);
+    startTyping();
+  }, 950);
+}
+
+var LETTER = [
+  "Oi, Maria Clara. Você já deve imaginar quem é. Bom, obrigado por ao menos estar vendo isso, foi um tempo e tanto que tem sido passado, e a vida tem sido... difícil. Espero que a sua tenha continuado bem, e setembro logo está aí pra você fazer o seu concurso.",
+  "Bem... isso não é uma tentativa de nada, nem algum tipo de coisa diferente pra te conquistar, afinal... eu já fui aí e sabemos como terminou.",
+  "Eu não tenho conseguido dormir direito faz um bom tempo, e o sentimento é uma certa angústia, eu tento me livrar de pensar em nós e tento abaixar a poeira, mas infelizmente ainda em todo lugar que eu tento apagar coisas ou não olhar, acabo vendo sem querer.",
+  "E acho que tá na hora de eu acabar por tentar tirar o que eu posso, pra guardar em outro lugar. Foi por isso que juntei tudo o que sobrou de nós num lugar só, as fotos, os vídeos, as conversas que eu guardei com carinho. Não é uma carta de papel, é virtual, feita pra você ler sem pressa, sem precisar responder nada.",
+  "No fim, você vai poder entrar e ver tudo o que restou, e fazer o que quiser com isso, guardar, apagar, esquecer, tanto faz. Esse lugar não vai ficar no ar pra sempre, daqui a pouco ele sai do ar, então isso aqui é mais uma despedida bem feita do que qualquer outra coisa.",
+  "Obrigado por ter feito parte da minha história, Maria Clara. Que a sua continue bem, com ou sem mim nela."
+];
+var QUESTION = "...e agora que você leu até aqui, você quer ter acesso ao que sobrou?";
+
+function startTyping(){
+  var body = document.getElementById("letterBody");
+  body.innerHTML = "";
+  var idx = 0;
+
+  function nextParagraph(){
+    if(idx >= LETTER.length){
+      typeQuestion();
+      return;
+    }
+    var p = document.createElement("p");
+    p.className = "letter-line";
+    var caret = document.createElement("span");
+    caret.className = "caret";
+    caret.textContent = "|";
+    p.appendChild(caret);
+    body.appendChild(p);
+    var text = LETTER[idx];
+    var i = 0;
+
+    function typeChar(){
+      if(i < text.length){
+        var ch = text[i];
+        p.insertBefore(document.createTextNode(ch), caret);
+        if(ch !== " "){typeClick(true);}
+        i++;
+        var delay = 26 + Math.random()*44;
+        if(".,!?…".indexOf(ch) !== -1){delay += 230;}
+        setTimeout(typeChar, delay);
+      } else {
+        caret.remove();
+        idx++;
+        setTimeout(nextParagraph, 520);
+      }
+    }
+    typeChar();
+  }
+
+  function typeQuestion(){
+    var p = document.createElement("p");
+    p.className = "letter-line question";
+    var caret = document.createElement("span");
+    caret.className = "caret";
+    caret.textContent = "|";
+    p.appendChild(caret);
+    body.appendChild(p);
+    var i = 0;
+
+    function typeChar(){
+      if(i < QUESTION.length){
+        var ch = QUESTION[i];
+        p.insertBefore(document.createTextNode(ch), caret);
+        if(ch !== " "){typeClick(true);}
+        i++;
+        setTimeout(typeChar, 34 + Math.random()*40);
+      } else {
+        caret.remove();
+        document.getElementById("choiceRow").classList.add("show");
+      }
+    }
+    typeChar();
+  }
+
+  nextParagraph();
+}
+
+document.getElementById("btnYes").addEventListener("click", function(){
+  ensureAudio();
+  setScene("scene-soon");
+});
+
+document.getElementById("btnNo").addEventListener("click", function(){
+  ensureAudio();
+  document.getElementById("choiceRow").style.pointerEvents = "none";
+  var reading = document.getElementById("scene-reading");
+  var final = document.getElementById("scene-final");
+  reading.classList.add("leaving");
+  final.classList.add("active");
+  setTimeout(function(){
+    final.classList.add("slide-in");
+  }, 30);
+  setTimeout(runFinal, 2500);
+});
+
+function runFinal(){
+  var el = document.getElementById("finalText");
+  typeSimple("...", el, function(){
+    setTimeout(function(){
+      typeSimple("Obrigado.", el, function(){
+        setTimeout(function(){
+          document.getElementById("blackout").classList.add("on");
+          setTimeout(function(){
+            try{ window.close(); }catch(e){}
+          }, 2600);
+        }, 1800);
+      }, true);
+    }, 1400);
+  });
+}
+
+function typeSimple(text, el, onDone, clearFirst){
+  if(clearFirst){el.textContent = "";}
+  var i = 0;
+  function step(){
+    if(i < text.length){
+      el.textContent += text[i];
+      if(text[i] !== " "){typeClick(true);}
+      i++;
+      setTimeout(step, 90 + Math.random()*70);
+    } else if(onDone){
+      onDone();
+    }
+  }
+  step();
+}
+</script>
+</body>
+</html>
