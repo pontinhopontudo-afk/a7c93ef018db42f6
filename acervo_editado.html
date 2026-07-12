@@ -624,7 +624,12 @@ function startTyping(){
 
 document.getElementById("btnYes").addEventListener("click", function(){
   ensureAudio();
-  setScene("scene-soon");
+
+  document.getElementById("blackout").classList.add("on");
+
+  setTimeout(function(){
+    window.location.href = "corredor.html";
+  }, 1800);
 });
 
 document.getElementById("btnNo").addEventListener("click", function(){
