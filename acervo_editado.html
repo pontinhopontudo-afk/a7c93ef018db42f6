@@ -404,7 +404,7 @@ body.flash-on #flash{opacity:1;}
 
 <script>
 var CODE = "18221826";
-var BIRTH = "22/01/2006";
+var BIRTH = "22012006";
 var audioCtx = null;
 
 function ensureAudio(){
@@ -511,7 +511,7 @@ codeForm.addEventListener("submit", function(e){
   ensureAudio();
   var val = document.getElementById("codeInput").value.trim();
   var hint = document.getElementById("hintError");
-  var birth=document.getElementById("birthInput").value.trim();
+  var birth = document.getElementById("birthInput").value.replace(/\D/g, "");
   if(val !== CODE){
     hint.textContent="não é isso...";
     hint.classList.remove("show");
@@ -521,11 +521,11 @@ codeForm.addEventListener("submit", function(e){
     return;
   }
   if(birth !== BIRTH){
-    hint.textContent="você não é a Maria Clara.";
+    hint.textContent = "você não é a Maria Clara.";
     hint.classList.remove("show");
     void hint.offsetWidth;
     hint.classList.add("show");
-    document.getElementById("birthInput").value="";
+    document.getElementById("birthInput").value = "";
     return;
   }
   hint.classList.remove("show");
